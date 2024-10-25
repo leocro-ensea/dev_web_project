@@ -1,8 +1,9 @@
 const express = require("express")
 const router = express.Router()
 const { getAllUsers } = require("../controllers/usersControllers")
-const db = require("./database")
 const { createNewUser } = require("../controllers/usersControllers")
+const { updateUser } = require("../controllers/usersControllers")
+const db = require("./database")
 
 module.exports = router
 
