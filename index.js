@@ -3,12 +3,6 @@ const app = express();
 const port = 3000;
 app.use(express.json());
 
-
-/* app.get("/", (req, res) => {
-    res.json({
-        msg: "hello from API"
-    })
-})*/
 // créer un nouvel utilisateur
 // POST : CRÉER un nouvel utilisateur, basé sur les données passées dans le corps(body) de la requête
 app.post("/", (req, res) => {
@@ -33,16 +27,10 @@ app.post("/", (req, res) => {
 	res.status(201).json(newUser)
 })
 
-/*app.put("/", (req, res) => {
-	res.json({
-		msg: "ici le put !!!",
-	})
-})
-*/
 
 app.put("/:id", (req, res) => {
 	// récupérer toutes les données qui arrivent dans le corps de la requête (body)
-	const { firstName, lastName } = req.body
+	const { firstName, lastName, role} = req.body
     const id = parseInt(req.params.id)
 
 	// trouve son index, verifier si le userIndex est positive
@@ -52,10 +40,11 @@ app.put("/:id", (req, res) => {
 	if (userIndex < 0)
 		return res.status(404).json({ msg: "utilisateur non trouvé" })
 
-	// si el est trouvé, nous vérifions quelles valeurs ont été envoyées
+	// si el est trouvé, 
 
 	if (firstName) users[userIndex].firstName = firstName
 	if (lastName) users[userIndex].lastName = lastName
+	if (role) users[userIndex].role = role
 
     res.json({
 		msg: "utilisateur mis à jour",
@@ -63,11 +52,25 @@ app.put("/:id", (req, res) => {
 	})
 })
 
-app.delete("/", (req, res) => {
+
+app.delete("/:id", (req, res) => {
+	const id = parseInt(req.params.id)
+
+	// trouve son index, verifier si le userIndex est positive
+	const userIndex = users.findIndex((user) => user.id === id)
+
+	// utilisateur non trouvé
+	if (userIndex < 0)
+		return res.status(404).json({ msg: "utilisateur non trouvé" })
+
+	// si el est trouvé
+	users.splice(userIndex, 1)
+
 	res.json({
-		msg: "ici le delete!!!",
+		msg: "utilisateur suprimée",
 	})
 })
+
 
 app.listen(port, () => {
 	console.log(`Serveur en cours d'exécution sur http://localhost:${port}`);
@@ -81,7 +84,15 @@ const users = [
 	{ id: 5, firstName: "Charlie", lastName: "Davis", role: "admin" },
 ]
 
-// GET : LIRE tous les utilisateurs
-app.get("/", (req, res) => {
-	res.json(users)
+app.get("/:id", (req, res) => {
+	const id = parseInt(req.params.id)
+
+	// trouve son index, verifier si le userIndex est positive
+	const userIndex = users.findIndex((user) => user.id === id)
+
+	// utilisateur non trouvé
+	if (userIndex < 0)
+		return res.status(404).json({ msg: "utilisateur non trouvé" })
+
+	res.json(users[userIndex])
 })
