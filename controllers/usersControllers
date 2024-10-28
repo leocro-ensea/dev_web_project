@@ -1,51 +1,54 @@
-
 const db = require("../routes/database")
 
-
-
-
+// Function to retrieve all users from the database
 exports.getAllUsers = function (req, res) {
 	db.all("SELECT * FROM users", [], (err, rows) => {
 		if (err) {
-			res.status(500).json({ error: err.message })
+			res.status(500).json({ error: err.message }) // Send a 500 error if there is a database issue
 		} else {
-			res.json(rows)
+			res.json(rows) // Send the retrieved rows (users) as JSON response
 		}
 	})
 }
 
+// Function to create a new user in the database
 exports.createNewUser = (req, res) => {
-	// récupérer toutes les données qui arrivent dans le corps de la requête (body)
+	// Retrieve all data from the request body
 	const { firstName, lastName } = req.body
 
+    // Helper function to check if a string contains only alphabetic characters
     function isAlphanumeric(str) {
         const regex = /^[a-zA-Z]+$/
         return regex.test(str)
     }
 
+    // Validate that the first name is provided
     if(!firstName) 
-        return res.status(400).json({error: "The first name is required !"})
+        return res.status(400).json({error: "The first name is required !"}) // Send 400 error if missing first name
         
+    // Validate that the first name is a string
     if (typeof firstName !== "string")
-        return res.status(400).json({error: "That's a weird name !"})
+        return res.status(400).json({error: "That's a weird name !"}) // Send 400 error if first name is not a string
         
+    // Check if the first name contains only alphabetic characters
     if (!isAlphanumeric(firstName))
-        return res.status(400).json({ error: "Ce nom n'est pas autorisé !" })
+        return res.status(400).json({ error: "This name is not allowed!" })
 	
+    // Validate that both first name and last name are provided
     if (!firstName || !lastName)
 		return res
 			.status(400)
-			.json({ error: "Le prénom et le nom de famille sont requis !" })
+			.json({ error: "First name and last name are required!" })
 
-
+    // Insert the new user into the database
     db.run(
             "INSERT INTO users (firstName, lastName) VALUES (?, ?)",
             [firstName, lastName],
             function (err) {
                 if (err) {
-                    res.status(500).json({ error: err.message })
+                    res.status(500).json({ error: err.message }) // Send 500 error if insertion fails
                 } else {
-                    res.status(201).json({ id: this.lastID, firstName })
+                    res.status(201).json({ id: this.lastID, firstName }) // Send success response with the new user's ID
                 }
             
             }
@@ -53,16 +56,14 @@ exports.createNewUser = (req, res) => {
         )
 }
 
-
-exports.updateUser = (req, res) => {
-// POST mise à jour d'un utilisateur en fonction de son ID
+// POST: Update an existing user based on their ID
 exports.updateUser = (req, res) => {
 	const { firstName, lastName } = req.body
 
-	// Récupérer l'id des paramètres
+	// Retrieve the user ID from the request parameters
 	const userId = req.params.id
 
-	// Vérifier les champs envoyés
+	// Check the fields provided in the request
 	let updateFields = []
 	let queryParams = []
 
@@ -76,26 +77,43 @@ exports.updateUser = (req, res) => {
 		queryParams.push(lastName)
 	}
 
+	// If there are fields to update, proceed with the update
 	if (updateFields.length > 0) {
-		// Ajouter userId aux paramètres de la requête
+		// Add userId to the query parameters
 		queryParams.push(userId)
 
-		// Construire la requête dynamiquement
+		// Build the query dynamically based on provided fields
 		const query = `UPDATE users SET ${updateFields.join(", ")} WHERE id = ?`
 
 		db.run(query, queryParams, function (err) {
 			if (err) {
-				res.status(500).json({ error: err.message })
+				res.status(500).json({ error: err.message }) // Send 500 error if the update fails
 			} else if (this.changes === 0) {
-				res.status(404).json({ message: "Utilisateur non trouvé" })
+				res.status(404).json({ message: "User not found" }) // Send 404 if no user was updated
 			} else {
-				res.json({ msg: "Utilisateur mis à jour", userId, firstName, lastName })
+				res.json({ msg: "User updated", userId, firstName, lastName }) // Send success response with updated data
 			}
 		})
 	} else {
-		res.status(400).json({ message: "Aucun champ à mettre à jour" })
+		res.status(400).json({ message: "No fields to update" }) // Send 400 error if no fields provided for update
 	}
 }
 
+// Function to delete a user based on their ID
+exports.deleteUser = (req, res) => {
+	// Get the user ID from the request parameters
+	const { id } = req.params
 
+	// Run the delete query
+	db.run("DELETE FROM users WHERE id = ?", [id], function (err) {
+		if (err) {
+			res.status(500).json({ error: err.message }) // Send 500 error if deletion fails
+		} else if (this.changes === 0) {
+			// If no user was found for the given ID
+			res.status(404).json({ message: "User not found" })
+		} else {
+			// If successful
+			res.status(200).json({ message: "User deleted!" }) // Send success response for deletion
+		}
+	})
 }

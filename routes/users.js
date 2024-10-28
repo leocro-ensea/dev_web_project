@@ -1,32 +1,23 @@
 const express = require("express")
 const router = express.Router()
+
+// Import functions from the user controllers
 const { getAllUsers } = require("../controllers/usersControllers")
 const { createNewUser } = require("../controllers/usersControllers")
 const { updateUser } = require("../controllers/usersControllers")
-const db = require("./database")
+const { deleteUser } = require("../controllers/usersControllers")
 
+// Export the router for use in the main application
 module.exports = router
 
-router.post("/",createNewUser)
+// Route to handle creating a new user (POST request)
+router.post("/", createNewUser)
 
+// Route to handle updating an existing user by ID (PUT request)
 router.put("/:id", updateUser)
 
-router.get("/users",getAllUsers)
+// Route to retrieve all users (GET request)
+router.get("/users", getAllUsers)
 
-router.delete("/:id", (req, res) => {
-	const id = parseInt(req.params.id)
-
-	// trouve son index, verifier si le userIndex est positive
-	const userIndex = users.findIndex((user) => user.id === id)
-
-	// utilisateur non trouvé
-	if (userIndex < 0)
-		return res.status(404).json({ msg: "utilisateur non trouvé" })
-
-	// si el est trouvé
-	users.splice(userIndex, 1)
-
-	res.json({
-		msg: "utilisateur suprimée",
-	})
-})
+// Route to delete a user by ID (DELETE request)
+router.delete("/:id", deleteUser)
